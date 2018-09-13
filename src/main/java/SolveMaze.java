@@ -1,5 +1,7 @@
 import edu.illinois.cs.cs125.lib.mazemaker.Maze;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 /**
  * Solve a randomly-generated maze.
  *
@@ -15,28 +17,37 @@ public class SolveMaze {
      *
      * @param unused unused input arguments
      */
-
+    private static final int initChance = 20;
+    private static int chance = initChance/2;
+    private static int chanceIncreaseRate = chance/2;
+    private static final int mazeXSize = 5;
+    private static final int mazeYSize = 5;
     public static void main(final String[] unused) {
         /*
          * Create a new 10 x 10 maze. Feel free to change these values.
          */
-        Maze maze = new Maze(10, 10);
+        //Maze maze = new Maze(10, 10);
 
         /*
          * Pick (0, 0), the bottom left corner, as the starting point.
          * Put the end in the top right corner.
          */
-        maze.startAtZero();
-        maze.endAtTopRight();
+
 
         /*
          * You should be able to solve a 10 x 10 maze in (far fewer than) 1000 steps.
          * Feel free to adjust this number if you experiment with other mazes.
          */
         //System.out.println(maze);
-        //for(int i = 100; i<100; i++) {
-            A: for (int step = 0; step < 1000; step++) {
-                System.out.println(step);
+        int passed = 0;
+        int failed = 0;
+        int testRepeatTimes = 100;
+        int maximumSteps = 40;
+
+        for(int i = 0; i < testRepeatTimes; i++) {
+            Maze maze = generateNewMaze();
+            A: for (int step = 0; step < maximumSteps; step++) {
+                //System.out.println(step);
                 maze = isSolution(maze);
                 if (maze.isFinished()) {
                     break A;
@@ -44,15 +55,21 @@ public class SolveMaze {
             }
             if (maze.isFinished()) {
                 System.out.println("You solved the maze!");
+                passed += 1;
             } else {
                 System.out.println("Try again!");
+                failed += 1;
             }
-        //}
+            System.out.println();
+            drawLine();
+        }
+        printResult(passed, failed, testRepeatTimes);
     }
+
     public static Maze isSolution(final Maze maze){
-        int i = (int) (Math.random() * 20.0);
+        int i = ThreadLocalRandom.current().nextInt(0, initChance + 1);
         Maze m = maze;
-        if(i % 2 == 0) {
+        if(i  >= chance) {
             if (tryMoveLeft(m)) {
                 m.move();
                 //printStep(1);
@@ -66,6 +83,7 @@ public class SolveMaze {
                 m.turnLeft();
                 m.turnLeft();
                 m.move();
+                chance += chanceIncreaseRate;
                 //printStep(3);
             }
         } else {
@@ -83,6 +101,7 @@ public class SolveMaze {
                 m.turnLeft();
                 m.move();
                 //printStep(3);
+                chance -= chanceIncreaseRate;
             }
         }
         //System.out.println(i);
@@ -96,7 +115,7 @@ public class SolveMaze {
         } else {
             maze.turnRight();
         }
-        System.out.println(result);
+        //System.out.println(result);
         return result;
     }
     public static boolean tryMoveRight(Maze maze){
@@ -107,7 +126,7 @@ public class SolveMaze {
         } else {
             maze.turnLeft();
         }
-        System.out.println(result);
+        //System.out.println(result);
         return result;
     }
     public static void printStep(int s){
@@ -127,5 +146,20 @@ public class SolveMaze {
                 break;
         }
     }
-
+    public static void drawLine(){
+        System.out.println("=====================");
+    }
+    public static void printResult (int passed, int failed, int testRepeatTimes){
+        drawLine();
+        System.out.println("passed: " + passed);
+        System.out.println("failed: " + failed);
+        System.out.println("passed% = " + (double) passed/testRepeatTimes * 100 + "%");
+    }
+    public static Maze generateNewMaze(){
+        Maze maze = new Maze(mazeXSize, mazeYSize);
+        maze.startAtZero();
+        maze.endAtTopRight();
+        System.out.println(maze);
+        return maze;
+    }
 }
